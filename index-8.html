@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f8fb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ICU Bed Board" />
+  <title>ICU Bed Board Vault</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=3" />
+  <link rel="icon" href="./icons/icon-192-v3.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="./icons/icon-192-v3.png" />
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --bg-soft: #eef3f8;
+      --card: #ffffff;
+      --card-2: #f8fbff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #d9e2ec;
+      --accent: #2563eb;
+      --green: #22c55e;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --red: #ef4444;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f9fbfd 0%, #eef4f9 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .app-shell {
+      max-width: 760px;
+      margin: 0 auto;
+      min-height: 100%;
+      padding: 14px 14px 92px;
+    }
+
+    .topbar, .card, .sheet, .lock-card, .tabbar {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 10px;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.01em; }
+    h2 { font-size: 1rem; font-weight: 800; }
+    .subtle { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+    .tiny { font-size: 0.8rem; color: var(--muted); }
+    .strong { font-weight: 700; }
+
+    .card {
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select, button {
+      font: inherit;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #d5deea;
+      background: #ffffff;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 13px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(37, 99, 235, 0.55);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.2s ease;
+      font-weight: 700;
+    }
+    button:active { transform: translateY(1px) scale(0.995); }
+    button.secondary { background: #e8eef5; color: var(--text); }
+    button.primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    button.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    button.warn { background: linear-gradient(135deg, #fb923c, #f97316); color: white; }
+    button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    button.ghost { background: #fff; border: 1px solid #d5deea; color: var(--text); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .patient-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .patient-item {
+      padding: 0;
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,0.08);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .patient-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 16px 14px;
+    }
+
+    .name {
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .bed {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 0.83rem;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.26);
+      backdrop-filter: blur(6px);
+    }
+
+    .patient-green { background: #dcfce7; color: #111827; }
+    .patient-yellow { background: #fef9c3; color: #111827; }
+    .patient-orange { background: #fed7aa; color: #111827; }
+    .patient-red { background: #ef4444; color: #ffffff; }
+    .patient-red .bed { color: #ffffff; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
+
+    .patient-meta {
+      display: none;
+      padding: 0 14px 14px;
+      font-size: 0.8rem;
+      color: inherit;
+      opacity: 0.85;
+    }
+    .show-meta .patient-meta { display: block; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > * { flex: 1 1 160px; }
+
+    .hidden { display: none !important; }
+
+    .empty {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--muted);
+      border: 1px dashed #cfdae7;
+      border-radius: 16px;
+      background: #fbfdff;
+    }
+
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 10px;
+      width: min(760px, calc(100vw - 20px));
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      z-index: 20;
+    }
+
+    .tabbar button {
+      background: transparent;
+      color: #475569;
+      padding: 12px 8px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+    }
+    .tabbar button.active {
+      background: #e6efff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .sheet-wrap {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.32);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 40;
+      padding: 16px;
+    }
+    .sheet-wrap.show { display: flex; }
+
+    .sheet {
+      width: min(760px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      padding: 16px;
+      border-radius: 24px 24px 18px 18px;
+      background: #ffffff;
+    }
+
+    .sheet-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .sheet-actions.triple { grid-template-columns: repeat(3, 1fr); }
+
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef4fa 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 60;
+    }
+
+    .lock-card {
+      width: min(460px, 100%);
+      padding: 20px;
+      background: rgba(255,255,255,0.98);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #e8f1ff;
+      color: #1d4ed8;
+      border: 1px solid #cfe0ff;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 14px 0;
+    }
+
+    .danger-zone {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 16px;
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+    }
+
+    .banner {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      color: #334155;
+    }
+
+    @media (max-width: 520px) {
+      .filters { grid-template-columns: 1fr; }
+      .sheet-actions, .sheet-actions.triple { grid-template-columns: 1fr; }
+      .tabbar button { font-size: 0.77rem; padding: 10px 6px; }
+      .patient-main { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="lock-screen" id="lockScreen">
+    <div class="lock-card">
+      <div class="pill">Encrypted IndexedDB Vault</div>
+      <div style="margin-top:14px">
+        <h1>ICU Bed Board</h1>
+        <p class="subtle" id="lockSubtitle">Create a vault password to encrypt this local offline patient board. Only encrypted vault data is stored in IndexedDB.</p>
+      </div>
+      <div style="margin-top:18px">
+        <label for="vaultPassword">Vault password</label>
+        <input id="vaultPassword" type="password" autocomplete="current-password" placeholder="Enter vault password" />
+      </div>
+      <div style="margin-top:10px" id="confirmWrap">
+        <label for="vaultPassword2">Confirm password</label>
+        <input id="vaultPassword2" type="password" autocomplete="new-password" placeholder="Confirm vault password" />
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="primary" id="unlockBtn">Create vault</button>
+      </div>
+      <p class="tiny" style="margin-top:12px">For installable PWA mode, keep this file next to <span class="strong">manifest.webmanifest</span> and <span class="strong">sw.js</span> on HTTPS or localhost.</p>
+      <p class="tiny" id="lockMsg" style="margin-top:8px"></p>
+    </div>
+  </div>
+
+  <div class="app-shell hidden" id="appShell">
+    <section class="topbar">
+      <h1>ICU BED BOARD</h1>
+      <button class="ghost" id="lockNowBtn">Lock</button>
+    </section>
+
+    <section id="view-dashboard" class="view">
+      <div class="patient-list" id="dashboardList"></div>
+    </section>
+
+    <section id="view-admit" class="view hidden">
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2>Admit patient</h2>
+            <p class="tiny">Only four fields: name, bed no, note, flag.</p>
+          </div>
+          <div class="pill" id="admitCounter">Active: 0</div>
+        </div>
+
+        <form id="admitForm">
+          <div>
+            <label for="patientName">Patient name</label>
+            <input id="patientName" type="text" maxlength="120" placeholder="Enter patient name" required />
+          </div>
+          <div style="margin-top:10px">
+            <label for="bedNo">Bed no</label>
+            <input id="bedNo" type="text" maxlength="40" placeholder="ICU bed number" required />
+          </div>
+          <div style="margin-top:10px">
+            <label for="patientNote">Note</label>
+            <textarea id="patientNote" maxlength="2000" placeholder="Short note"></textarea>
+          </div>
+          <div style="margin-top:10px">
+            <label for="patientFlag">Flag</label>
+            <select id="patientFlag">
+              <option value="green">Green</option>
+              <option value="yellow">Yellow</option>
+              <option value="orange">Orange</option>
+              <option value="red">Red</option>
+            </select>
+          </div>
+          <div class="sheet-actions" style="margin-top:16px">
+            <button type="submit" class="success">Save patient</button>
+            <button type="button" class="secondary" id="clearAdmitBtn">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="view-archive" class="view hidden">
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2>Archive</h2>
+            <p class="tiny">Patients older than 3 days move here automatically.</p>
+          </div>
+        </div>
+        <div class="filters">
+          <div>
+            <label for="archiveSearch">Search archive</label>
+            <input id="archiveSearch" type="text" placeholder="Search name, bed, or note" />
+          </div>
+          <div>
+            <label for="archiveFlag">Flag</label>
+            <select id="archiveFlag">
+              <option value="all">All flags</option>
+              <option value="green">Green</option>
+              <option value="yellow">Yellow</option>
+              <option value="orange">Orange</option>
+              <option value="red">Red</option>
+            </select>
+          </div>
+          <div>
+            <label for="archiveFrom">From date</label>
+            <input id="archiveFrom" type="date" />
+          </div>
+          <div>
+            <label for="archiveTo">To date</label>
+            <input id="archiveTo" type="date" />
+          </div>
+        </div>
+      </div>
+      <div class="patient-list" id="archiveList"></div>
+    </section>
+
+    <section id="view-settings" class="view hidden">
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2>Vault & Backup</h2>
+            <p class="tiny">Exported backup files contain encrypted vault data, not readable patient text.</p>
+          </div>
+        </div>
+
+        <div class="banner">
+          <div class="strong">Export encryption check</div>
+          <div class="tiny" style="margin-top:6px">Backups export only the encrypted vault payload (<span class="strong">cipher</span> + <span class="strong">iv</span>) and the vault <span class="strong">salt</span>. Patient records are not exported in plain text.</div>
+        </div>
+
+        <div class="sheet-actions" style="margin-top:14px">
+          <button class="primary" id="exportBtn">Export encrypted backup</button>
+          <button class="secondary" id="installBtn">Install</button>
+        </div>
+
+        <div style="margin-top:12px">
+          <label for="importFile">Import encrypted backup</label>
+          <input id="importFile" type="file" accept="application/json" />
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+          <h3 style="font-size:0.96rem">Change vault password</h3>
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label for="changePw1">New password</label>
+              <input id="changePw1" type="password" autocomplete="new-password" />
+            </div>
+            <div>
+              <label for="changePw2">Confirm password</label>
+              <input id="changePw2" type="password" autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="secondary" id="changePwBtn">Update password</button>
+          </div>
+        </div>
+
+        <div class="banner" style="margin-top:12px">
+          <div class="strong">Auto-lock</div>
+          <div class="tiny" style="margin-top:6px">The app auto-locks after 60 seconds of inactivity and also when the app goes into background/minimized state for 60 seconds.</div>
+        </div>
+
+        <div class="danger-zone">
+          <div class="strong">Danger zone</div>
+          <div class="tiny" style="margin-top:6px">Erase the local vault from this device.</div>
+          <div class="row" style="margin-top:10px">
+            <button class="danger" id="wipeBtn">Wipe vault</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="tabbar hidden" id="tabbar">
+    <button data-view="dashboard" class="active">Dashboard</button>
+    <button data-view="admit">Admit</button>
+    <button data-view="archive">Archive</button>
+    <button data-view="settings">Settings</button>
+  </nav>
+
+  <div class="sheet-wrap" id="editSheetWrap">
+    <div class="sheet">
+      <div class="section-head">
+        <div>
+          <h2>Edit patient</h2>
+          <p class="tiny">Tap save to update the same 4 fields.</p>
+        </div>
+        <button class="secondary" id="closeEditBtn">Close</button>
+      </div>
+
+      <form id="editForm">
+        <input type="hidden" id="editId" />
+        <div>
+          <label for="editName">Patient name</label>
+          <input id="editName" type="text" maxlength="120" required />
+        </div>
+        <div style="margin-top:10px">
+          <label for="editBed">Bed no</label>
+          <input id="editBed" type="text" maxlength="40" required />
+        </div>
+        <div style="margin-top:10px">
+          <label for="editNote">Note</label>
+          <textarea id="editNote" maxlength="2000"></textarea>
+        </div>
+        <div style="margin-top:10px">
+          <label for="editFlag">Flag</label>
+          <select id="editFlag">
+            <option value="green">Green</option>
+            <option value="yellow">Yellow</option>
+            <option value="orange">Orange</option>
+            <option value="red">Red</option>
+          </select>
+        </div>
+        <div class="sheet-actions triple">
+          <button type="submit" class="success">Save</button>
+          <button type="button" class="warn" id="forceArchiveBtn">Archive</button>
+          <button type="button" class="danger" id="deletePatientBtn">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const DB_NAME = 'icuBedBoardVault';
+    const DB_VERSION = 1;
+    const META_STORE = 'meta';
+    const VAULT_STORE = 'vault';
+    const SALT_KEY = 'vaultSalt';
+    const DATA_KEY = 'encryptedData';
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    const IDLE_LOCK_MS = 60 * 1000;
+
+    const state = {
+      db: null,
+      vaultKey: null,
+      password: null,
+      data: { patients: [] },
+      initialized: false,
+      activeView: 'dashboard',
+      deferredPrompt: null,
+      idleTimer: null,
+      backgroundTimer: null,
+      isBackground: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const el = {
+      lockScreen: $('lockScreen'),
+      appShell: $('appShell'),
+      tabbar: $('tabbar'),
+      lockSubtitle: $('lockSubtitle'),
+      vaultPassword: $('vaultPassword'),
+      vaultPassword2: $('vaultPassword2'),
+      confirmWrap: $('confirmWrap'),
+      unlockBtn: $('unlockBtn'),
+      lockMsg: $('lockMsg'),
+      lockNowBtn: $('lockNowBtn'),
+      installBtn: $('installBtn'),
+      dashboardList: $('dashboardList'),
+      admitCounter: $('admitCounter'),
+      admitForm: $('admitForm'),
+      patientName: $('patientName'),
+      bedNo: $('bedNo'),
+      patientNote: $('patientNote'),
+      patientFlag: $('patientFlag'),
+      clearAdmitBtn: $('clearAdmitBtn'),
+      archiveList: $('archiveList'),
+      archiveSearch: $('archiveSearch'),
+      archiveFlag: $('archiveFlag'),
+      archiveFrom: $('archiveFrom'),
+      archiveTo: $('archiveTo'),
+      exportBtn: $('exportBtn'),
+      importFile: $('importFile'),
+      changePw1: $('changePw1'),
+      changePw2: $('changePw2'),
+      changePwBtn: $('changePwBtn'),
+      wipeBtn: $('wipeBtn'),
+      editSheetWrap: $('editSheetWrap'),
+      closeEditBtn: $('closeEditBtn'),
+      editForm: $('editForm'),
+      editId: $('editId'),
+      editName: $('editName'),
+      editBed: $('editBed'),
+      editNote: $('editNote'),
+      editFlag: $('editFlag'),
+      deletePatientBtn: $('deletePatientBtn'),
+      forceArchiveBtn: $('forceArchiveBtn')
+    };
+
+    window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      state.deferredPrompt = e;
+      updateInstallButton();
+    });
+    window.addEventListener('appinstalled', () => {
+      state.deferredPrompt = null;
+      updateInstallButton();
+    });
+
+    async function init() {
+      state.db = await openDB();
+      const salt = await idbGet(META_STORE, SALT_KEY);
+      configureLockUI(!!salt);
+      bindEvents();
+      await registerSW();
+      updateInstallButton();
+    }
+
+    function bindEvents() {
+      el.unlockBtn.addEventListener('click', unlockVault);
+      el.lockNowBtn.addEventListener('click', () => lockVault('Locked.'));
+      el.admitForm.addEventListener('submit', onAdmitSubmit);
+      el.clearAdmitBtn.addEventListener('click', clearAdmitForm);
+      el.archiveSearch.addEventListener('input', renderArchive);
+      el.archiveFlag.addEventListener('change', renderArchive);
+      el.archiveFrom.addEventListener('change', renderArchive);
+      el.archiveTo.addEventListener('change', renderArchive);
+      el.exportBtn.addEventListener('click', exportBackup);
+      el.importFile.addEventListener('change', importBackup);
+      el.changePwBtn.addEventListener('click', changeVaultPassword);
+      el.wipeBtn.addEventListener('click', wipeVault);
+      el.closeEditBtn.addEventListener('click', closeEditSheet);
+      el.editForm.addEventListener('submit', onEditSubmit);
+      el.deletePatientBtn.addEventListener('click', onDeletePatient);
+      el.forceArchiveBtn.addEventListener('click', onForceArchive);
+      el.installBtn.addEventListener('click', triggerInstall);
+      document.querySelectorAll('#tabbar button').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+
+      ['click', 'keydown', 'touchstart', 'input', 'change', 'scroll'].forEach(evt => {
+        window.addEventListener(evt, resetIdleLock, { passive: true });
+      });
+
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('focus', onForeground);
+      window.addEventListener('pageshow', onForeground);
+    }
+
+    function configureLockUI(hasVault) {
+      el.confirmWrap.classList.toggle('hidden', hasVault);
+      el.unlockBtn.textContent = hasVault ? 'Unlock vault' : 'Create vault';
+      el.lockSubtitle.textContent = hasVault
+        ? 'Enter your vault password to unlock the encrypted local board.'
+        : 'Create a vault password to encrypt this local offline patient board. Only encrypted vault data is stored in IndexedDB.';
+      setLockMsg('');
+    }
+
+    async function unlockVault() {
+      try {
+        const password = el.vaultPassword.value.trim();
+        const confirm = el.vaultPassword2.value.trim();
+        if (!password || password.length < 4) throw new Error('Password must be at least 4 characters.');
+        const existingSalt = await idbGet(META_STORE, SALT_KEY);
+
+        if (!existingSalt) {
+          if (password !== confirm) throw new Error('Passwords do not match.');
+          const salt = crypto.getRandomValues(new Uint8Array(16));
+          await idbSet(META_STORE, SALT_KEY, bytesToB64(salt));
+          state.vaultKey = await deriveKey(password, salt);
+          state.password = password;
+          state.data = { patients: [] };
+          await persistVault();
+        } else {
+          state.vaultKey = await deriveKey(password, b64ToBytes(existingSalt));
+          state.password = password;
+          const raw = await idbGet(VAULT_STORE, DATA_KEY);
+          state.data = raw ? await decryptJSON(raw, state.vaultKey) : { patients: [] };
+          if (!raw) await persistVault();
+        }
+
+        state.initialized = true;
+        el.vaultPassword.value = '';
+        el.vaultPassword2.value = '';
+        unlockApp();
+      } catch (err) {
+        console.error(err);
+        setLockMsg(err.message || 'Unable to unlock vault.');
+      }
+    }
+
+    function unlockApp() {
+      el.lockScreen.classList.add('hidden');
+      el.appShell.classList.remove('hidden');
+      el.tabbar.classList.remove('hidden');
+      switchView('dashboard');
+      resetIdleLock();
+      renderAll();
+    }
+
+    function lockVault(message = '') {
+      clearTimeout(state.idleTimer);
+      clearTimeout(state.backgroundTimer);
+      state.vaultKey = null;
+      state.password = null;
+      state.data = { patients: [] };
+      state.initialized = false;
+      el.appShell.classList.add('hidden');
+      el.tabbar.classList.add('hidden');
+      el.lockScreen.classList.remove('hidden');
+      closeEditSheet();
+      el.vaultPassword.value = '';
+      el.vaultPassword2.value = '';
+      idbGet(META_STORE, SALT_KEY).then(s => configureLockUI(!!s));
+      if (message) setLockMsg(message);
+    }
+
+    function resetIdleLock() {
+      if (!state.initialized || state.isBackground) return;
+      clearTimeout(state.idleTimer);
+      state.idleTimer = setTimeout(() => {
+        if (state.initialized) lockVault('Auto-locked after 60 seconds of inactivity.');
+      }, IDLE_LOCK_MS);
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) {
+        state.isBackground = true;
+        clearTimeout(state.backgroundTimer);
+        state.backgroundTimer = setTimeout(() => {
+          if (document.hidden && state.initialized) lockVault('Auto-locked after 60 seconds in background.');
+        }, IDLE_LOCK_MS);
+      } else {
+        onForeground();
+      }
+    }
+
+    function onForeground() {
+      state.isBackground = false;
+      clearTimeout(state.backgroundTimer);
+      resetIdleLock();
+    }
+
+    async function onAdmitSubmit(e) {
+      e.preventDefault();
+      try {
+        ensureUnlocked();
+        const patient = {
+          id: crypto.randomUUID(),
+          name: el.patientName.value.trim(),
+          bedNo: el.bedNo.value.trim(),
+          note: el.patientNote.value.trim(),
+          flag: el.patientFlag.value,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          forceArchived: false
+        };
+        if (!patient.name || !patient.bedNo) throw new Error('Patient name and bed number are required.');
+        state.data.patients.unshift(patient);
+        await persistVault();
+        clearAdmitForm();
+        switchView('dashboard');
+        renderAll();
+      } catch (err) {
+        alert(err.message || 'Unable to save patient.');
+      }
+    }
+
+    function clearAdmitForm() {
+      el.patientName.value = '';
+      el.bedNo.value = '';
+      el.patientNote.value = '';
+      el.patientFlag.value = 'green';
+    }
+
+    async function onEditSubmit(e) {
+      e.preventDefault();
+      try {
+        ensureUnlocked();
+        const id = el.editId.value;
+        const patient = state.data.patients.find(p => p.id === id);
+        if (!patient) throw new Error('Patient not found.');
+        patient.name = el.editName.value.trim();
+        patient.bedNo = el.editBed.value.trim();
+        patient.note = el.editNote.value.trim();
+        patient.flag = el.editFlag.value;
+        patient.updatedAt = Date.now();
+        if (!patient.name || !patient.bedNo) throw new Error('Patient name and bed number are required.');
+        await persistVault();
+        closeEditSheet();
+        renderAll();
+      } catch (err) {
+        alert(err.message || 'Unable to update patient.');
+      }
+    }
+
+    async function onDeletePatient() {
+      const id = el.editId.value;
+      if (!id) return;
+      if (!confirm('Delete this patient from the vault?')) return;
+      state.data.patients = state.data.patients.filter(p => p.id !== id);
+      await persistVault();
+      closeEditSheet();
+      renderAll();
+    }
+
+    async function onForceArchive() {
+      const id = el.editId.value;
+      const patient = state.data.patients.find(p => p.id === id);
+      if (!patient) return;
+      patient.forceArchived = true;
+      patient.updatedAt = Date.now();
+      await persistVault();
+      closeEditSheet();
+      switchView('archive');
+      renderAll();
+    }
+
+    function openEditSheet(patientId) {
+      const patient = state.data.patients.find(p => p.id === patientId);
+      if (!patient) return;
+      el.editId.value = patient.id;
+      el.editName.value = patient.name || '';
+      el.editBed.value = patient.bedNo || '';
+      el.editNote.value = patient.note || '';
+      el.editFlag.value = patient.flag || 'green';
+      el.editSheetWrap.classList.add('show');
+      resetIdleLock();
+    }
+
+    function closeEditSheet() {
+      el.editSheetWrap.classList.remove('show');
+      el.editForm.reset();
+      el.editId.value = '';
+    }
+
+    function switchView(view) {
+      state.activeView = view;
+      document.querySelectorAll('.view').forEach(section => section.classList.add('hidden'));
+      const target = $('view-' + view);
+      if (target) target.classList.remove('hidden');
+      document.querySelectorAll('#tabbar button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      renderAll();
+    }
+
+    function renderAll() {
+      if (!state.initialized) return;
+      el.admitCounter.textContent = 'Active: ' + getActivePatients().length;
+      renderDashboard();
+      renderArchive();
+      updateInstallButton();
+    }
+
+    function renderDashboard() {
+      const active = getActivePatients();
+      el.dashboardList.innerHTML = active.length
+        ? active.map(p => renderPatientCard(p, false)).join('')
+        : `<div class="card"><div class="empty">No active patients in the last 3 days.</div></div>`;
+      bindPatientCards(el.dashboardList);
+    }
+
+    function renderArchive() {
+      const archived = getArchivedPatients().filter(matchesArchiveFilters);
+      el.archiveList.innerHTML = archived.length
+        ? archived.map(p => renderPatientCard(p, true)).join('')
+        : `<div class="card"><div class="empty">Archive is empty or nothing matches your search.</div></div>`;
+      bindPatientCards(el.archiveList);
+    }
+
+    function bindPatientCards(container) {
+      container.querySelectorAll('.patient-item').forEach(card => {
+        card.addEventListener('click', () => openEditSheet(card.dataset.id));
+      });
+    }
+
+    function renderPatientCard(patient, showMeta) {
+      const flagClass = 'patient-' + escapeHtml(patient.flag || 'green');
+      return `
+        <article class="patient-item ${flagClass} ${showMeta ? 'show-meta' : ''}" data-id="${escapeHtml(patient.id)}">
+          <div class="patient-main">
+            <div class="name">${escapeHtml(patient.name || 'Unnamed Patient')}</div>
+            <div class="bed">Bed ${escapeHtml(patient.bedNo || '-')}</div>
+          </div>
+          <div class="patient-meta">
+            <div>${escapeHtml(patient.note || 'No note')}</div>
+            <div style="margin-top:6px">Admitted: ${formatDateTime(patient.createdAt)} · Updated: ${formatDateTime(patient.updatedAt)}</div>
+          </div>
+        </article>
+      `;
+    }
+
+    function getPatients() {
+      return Array.isArray(state.data.patients) ? [...state.data.patients] : [];
+    }
+
+    function getActivePatients() {
+      return getPatients()
+        .filter(p => !isArchived(p))
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    }
+
+    function getArchivedPatients() {
+      return getPatients()
+        .filter(p => isArchived(p))
+        .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    }
+
+    function isArchived(patient) {
+      if (patient.forceArchived) return true;
+      const created = Number(patient.createdAt || 0);
+      return Date.now() - created > THREE_DAYS_MS;
+    }
+
+    function matchesArchiveFilters(patient) {
+      const flag = el.archiveFlag.value;
+      const search = (el.archiveSearch.value || '').trim().toLowerCase();
+      const from = el.archiveFrom.value ? new Date(el.archiveFrom.value + 'T00:00:00').getTime() : null;
+      const to = el.archiveTo.value ? new Date(el.archiveTo.value + 'T23:59:59').getTime() : null;
+      if (flag !== 'all' && patient.flag !== flag) return false;
+      if (search && !matchesSearch(patient, search)) return false;
+      if (from && Number(patient.createdAt || 0) < from) return false;
+      if (to && Number(patient.createdAt || 0) > to) return false;
+      return true;
+    }
+
+    function matchesSearch(patient, search) {
+      return [patient.name, patient.bedNo, patient.note]
+        .filter(Boolean)
+        .some(v => String(v).toLowerCase().includes(search));
+    }
+
+    async function persistVault() {
+      ensureUnlocked();
+      const payload = await encryptJSON(state.data, state.vaultKey);
+      await idbSet(VAULT_STORE, DATA_KEY, payload);
+    }
+
+    async function exportBackup() {
+      try {
+        ensureUnlocked();
+        const backup = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          encrypted: true,
+          algorithm: 'AES-GCM-256',
+          kdf: 'PBKDF2-SHA-256',
+          iterations: 250000,
+          salt: await idbGet(META_STORE, SALT_KEY),
+          vault: await idbGet(VAULT_STORE, DATA_KEY)
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, `icu-bed-board-backup-${dateStamp()}.json`);
+      } catch (err) {
+        alert(err.message || 'Unable to export backup.');
+      }
+    }
+
+    async function importBackup(event) {
+      try {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const text = await file.text();
+        const json = JSON.parse(text);
+        if (!json?.salt || !json?.vault?.cipher || !json?.vault?.iv) {
+          throw new Error('Invalid backup file.');
+        }
+        if (!confirm('Importing will overwrite the current vault on this device. Continue?')) return;
+        await idbSet(META_STORE, SALT_KEY, json.salt);
+        await idbSet(VAULT_STORE, DATA_KEY, json.vault);
+        lockVault('Backup imported. Unlock with the original password.');
+      } catch (err) {
+        alert(err.message || 'Unable to import backup.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function changeVaultPassword() {
+      try {
+        ensureUnlocked();
+        const pw1 = el.changePw1.value.trim();
+        const pw2 = el.changePw2.value.trim();
+        if (!pw1 || pw1.length < 4) throw new Error('New password must be at least 4 characters.');
+        if (pw1 !== pw2) throw new Error('Passwords do not match.');
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const newKey = await deriveKey(pw1, salt);
+        const payload = await encryptJSON(state.data, newKey);
+        await idbSet(META_STORE, SALT_KEY, bytesToB64(salt));
+        await idbSet(VAULT_STORE, DATA_KEY, payload);
+        state.vaultKey = newKey;
+        state.password = pw1;
+        el.changePw1.value = '';
+        el.changePw2.value = '';
+        alert('Vault password updated.');
+      } catch (err) {
+        alert(err.message || 'Unable to update password.');
+      }
+    }
+
+    async function wipeVault() {
+      if (!confirm('This will delete all patient data from this device. Continue?')) return;
+      await idbDelete(META_STORE, SALT_KEY);
+      await idbDelete(VAULT_STORE, DATA_KEY);
+      lockVault('Vault cleared.');
+    }
+
+    async function deriveKey(password, saltBytes) {
+      const enc = new TextEncoder();
+      const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: saltBytes, iterations: 250000, hash: 'SHA-256' },
+        baseKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
+
+    async function encryptJSON(value, key) {
+      const enc = new TextEncoder();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const raw = enc.encode(JSON.stringify(value));
+      const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, raw);
+      return { iv: bytesToB64(iv), cipher: bytesToB64(new Uint8Array(cipher)) };
+    }
+
+    async function decryptJSON(payload, key) {
+      try {
+        const dec = new TextDecoder();
+        const plain = await crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: b64ToBytes(payload.iv) },
+          key,
+          b64ToBytes(payload.cipher)
+        );
+        return JSON.parse(dec.decode(plain));
+      } catch {
+        throw new Error('Wrong vault password or corrupted vault data.');
+      }
+    }
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(META_STORE)) db.createObjectStore(META_STORE);
+          if (!db.objectStoreNames.contains(VAULT_STORE)) db.createObjectStore(VAULT_STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbGet(storeName, key) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbSet(storeName, key, value) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).put(value, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbDelete(storeName, key) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function setLockMsg(message) {
+      el.lockMsg.textContent = message || '';
+    }
+
+    function ensureUnlocked() {
+      if (!state.vaultKey) throw new Error('Vault is locked.');
+    }
+
+    function formatDateTime(ts) {
+      if (!ts) return '-';
+      try {
+        return new Date(ts).toLocaleString([], {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch {
+        return '-';
+      }
+    }
+
+    function updateInstallButton() {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      if (standalone) {
+        el.installBtn.textContent = 'Installed';
+        el.installBtn.disabled = true;
+      } else {
+        el.installBtn.textContent = 'Install';
+        el.installBtn.disabled = false;
+      }
+    }
+
+    async function triggerInstall() {
+      if (!state.deferredPrompt) {
+        alert('Install prompt is not available yet. On Android Chrome, open this over HTTPS or localhost and use Add to Home Screen if needed.');
+        return;
+      }
+      state.deferredPrompt.prompt();
+      await state.deferredPrompt.userChoice;
+      state.deferredPrompt = null;
+      updateInstallButton();
+    }
+
+    async function registerSW() {
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        await navigator.serviceWorker.register('./sw.js?v=3', { scope: './' });
+      } catch (err) {
+        console.warn('Service worker registration failed:', err);
+      }
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function bytesToB64(bytes) {
+      let binary = '';
+      const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      const chunk = 0x8000;
+      for (let i = 0; i < arr.length; i += chunk) binary += String.fromCharCode(...arr.subarray(i, i + chunk));
+      return btoa(binary);
+    }
+
+    function b64ToBytes(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    function dateStamp() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
